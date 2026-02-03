@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistic Regression | SABAH AI Course</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-card-hover: #1a1a25;
+            --accent-cyan: #00d4ff;
+            --accent-purple: #a855f7;
+            --accent-pink: #f472b6;
+            --accent-green: #22c55e;
+            --accent-orange: #fb923c;
+            --accent-blue: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --border-color: #27272a;
+            --gradient-main: linear-gradient(135deg, #00d4ff 0%, #a855f7 50%, #f472b6 100%);
+            --gradient-cyan: linear-gradient(135deg, #00d4ff 0%, #0ea5e9 100%);
+            --gradient-purple: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        /* Presentation mode styles */
+        body.presentation-mode {
+            font-size: 18px;
+        }
+
+        body.presentation-mode .slide {
+            min-height: 100vh;
+            padding: 2rem 3rem;
+        }
+
+        body.presentation-mode h1 {
+            font-size: 3rem;
+        }
+
+        body.presentation-mode h2 {
+            font-size: 2.25rem;
+        }
+
+        body.presentation-mode .formula-box {
+            font-size: 1.25rem;
+        }
+
+        /* Animated background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: 
+                radial-gradient(ellipse at 0% 0%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 100% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(244, 114, 182, 0.05) 0%, transparent 60%);
+            animation: gradientShift 20s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .grid-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Controls bar */
+        .controls-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 0.95rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .nav-dot:hover {
+            background: var(--accent-cyan);
+            transform: scale(1.2);
+        }
+
+        .nav-dot.active {
+            background: var(--gradient-cyan);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.5);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .ctrl-btn {
+            padding: 0.4rem 0.875rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.4rem;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ctrl-btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+            border-color: var(--accent-cyan);
+        }
+
+        .ctrl-btn.active {
+            background: var(--accent-purple);
+            color: white;
+            border-color: var(--accent-purple);
+        }
+
+        /* Main container */
+        main {
+            margin-top: 50px;
+        }
+
+        /* Slide sections */
+        .slide {
+            min-height: calc(100vh - 50px);
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide-number {
+            position: absolute;
+            top: 70px;
+            right: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Title slide */
+        .title-slide {
+            text-align: center;
+            position: relative;
+        }
+
+        .title-slide::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .course-badge {
+            display: inline-block;
+            padding: 0.6rem 1.25rem;
+            background: var(--gradient-main);
+            border-radius: 3rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.4); }
+        }
+
+        h1 {
+            font-size: 3.25rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 0.75rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.4rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .instructor-info {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .instructor-info strong {
+            color: var(--accent-cyan);
+        }
+
+        /* Section headers */
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -0.4rem;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--gradient-cyan);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: var(--accent-cyan);
+            margin: 1.5rem 0 0.75rem;
+            font-weight: 600;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Learning objectives */
+        .objectives-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .objective {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .objective:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-green);
+            box-shadow: 0 8px 30px rgba(34, 197, 94, 0.1);
+        }
+
+        .objective-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .objective-text {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Formula boxes */
+        .formula-box {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .formula-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-main);
+        }
+
+        .formula-box .formula {
+            font-size: 1.4rem;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .formula-box .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Cards grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin: 1.25rem 0;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--gradient-cyan);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.1);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card h4 {
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .card p {
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .card ul {
+            list-style: none;
+            margin-top: 0.75rem;
+        }
+
+        .card li {
+            padding: 0.35rem 0;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .card li::before {
+            content: '→';
+            color: var(--accent-cyan);
+        }
+
+        /* Interactive sections */
+        .interactive-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .interactive-box h3 {
+            margin-top: 0;
+        }
+
+        .slider-container {
+            margin: 1rem 0;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .slider-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .slider-value {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--gradient-cyan);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+        }
+
+        /* Chart container */
+        .chart-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        /* Steps */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1.25rem 0;
+        }
+
+        .step {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 0.75rem;
+            border-left: 3px solid var(--accent-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            background: var(--bg-card-hover);
+            transform: translateX(8px);
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-cyan);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+            font-size: 0.95rem;
+        }
+
+        .step-content p {
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+        /* Highlight box */
+        .highlight {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(244, 114, 182, 0.1) 100%);
+            border: 1px solid var(--accent-orange);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+
+        .highlight h4 {
+            color: var(--accent-orange);
+            font-size: 0.95rem;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .highlight p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Code block */
+        .code-block {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .code-block .comment { color: #6e7681; }
+        .code-block .keyword { color: #ff7b72; }
+        .code-block .string { color: #a5d6ff; }
+        .code-block .function { color: #d2a8ff; }
+        .code-block .number { color: #79c0ff; }
+        .code-block .variable { color: #ffa657; }
+
+        /* Quiz */
+        .quiz-container {
+            margin: 1.5rem 0;
+        }
+
+        .quiz-question {
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .quiz-option {
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 212, 255, 0.05);
+            transform: translateX(8px);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--accent-green);
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent-green);
+        }
+
+        .quiz-option.wrong {
+            border-color: var(--accent-pink);
+            background: rgba(244, 114, 182, 0.15);
+            color: var(--accent-pink);
+        }
+
+        .quiz-feedback {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-top: 0.75rem;
+            display: none;
+            font-size: 0.85rem;
+        }
+
+        .quiz-feedback.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quiz-feedback.correct {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .quiz-feedback.wrong {
+            background: rgba(244, 114, 182, 0.1);
+            border: 1px solid var(--accent-pink);
+            color: var(--accent-pink);
+        }
+
+        /* Summary slide */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.25rem 0;
+        }
+
+        .summary-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-item::before {
+            content: attr(data-num);
+            position: absolute;
+            top: -8px;
+            right: 8px;
+            font-size: 3rem;
+            font-weight: 800;
+            color: rgba(0, 212, 255, 0.1);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .summary-item h4 {
+            color: var(--accent-cyan);
+            margin-bottom: 0.4rem;
+            font-size: 0.95rem;
+        }
+
+        .summary-item p {
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            background: var(--gradient-cyan);
+            border: none;
+            border-radius: 0.5rem;
+            color: var(--bg-dark);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Speaker notes (hidden by default) */
+        .speaker-notes {
+            display: none;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px dashed var(--accent-purple);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--accent-purple);
+        }
+
+        body.show-notes .speaker-notes {
+            display: block;
+        }
+
+        /* Timer */
+        .timer {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            color: var(--accent-cyan);
+            display: none;
+            z-index: 1000;
+        }
+
+        body.show-timer .timer {
+            display: block;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            z-index: 999;
+            transition: width 0.3s ease;
+        }
+
+        /* Code explanation boxes */
+        .code-explanation {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .code-explanation .code-side {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .code-explanation .explain-side {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .explain-item {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent-cyan);
+            padding: 0.6rem 0.75rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 0.8rem;
+        }
+
+        .explain-item .line-ref {
+            color: var(--accent-purple);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+        }
+
+        /* Two column layout */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .slide { padding: 1.5rem 1rem; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            .objectives-container,
+            .summary-grid,
+            .code-explanation,
+            .two-columns { grid-template-columns: 1fr; }
+        }
+
+        /* Print styles */
+        @media print {
+            .controls-bar, .timer, .progress-bar, .nav-dots { display: none; }
+            .slide { page-break-after: always; min-height: auto; padding: 1rem; }
+            body { font-size: 11pt; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="grid-pattern"></div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="controls-bar">
+        <div class="logo">SABAH • AI & Deep Learning</div>
+        <div class="nav-dots" id="navDots"></div>
+        <div class="control-buttons">
+            <button class="ctrl-btn" onclick="toggleNotes()">Notes</button>
+            <button class="ctrl-btn" onclick="toggleTimer()">Timer</button>
+            <button class="ctrl-btn" onclick="togglePresentation()">Present</button>
+        </div>
+    </div>
+
+    <div class="timer" id="timer">00:00</div>
+
+    <main>
+        <!-- Slide 1: Title -->
+        <section class="slide title-slide" id="slide1">
+            <div class="course-badge">Week 5 • Classification Algorithms</div>
+            <h1>Logistic Regression</h1>
+            <p class="subtitle">From Linear Models to Probabilistic Classification</p>
+            <div class="instructor-info">
+                <strong>Elnur Shahbalayev</strong><br>
+                Modern Artificial Intelligence & Deep Learning
+            </div>
+            <div class="speaker-notes">
+                <strong>⏱️ ~1 min</strong> | Welcome students. Introduce the topic: "Today we move from predicting continuous values to predicting categories." Mention real-world relevance: spam detection, medical diagnosis, fraud detection.
+            </div>
+        </section>
+
+        <!-- Slide 2: Learning Objectives -->
+        <section class="slide" id="slide2">
+            <h2>Learning Objectives</h2>
+            <p>By the end of this lecture, you will be able to:</p>
+            
+            <div class="objectives-container">
+                <div class="objective">
+                    <div class="objective-icon">✓</div>
+                    <div class="objective-text">Explain why linear regression fails for classification tasks</div>
+                </div>
+                <div class="objective">
+                    <div class="objective-icon">✓</div>
+                    <div class="objective-text">Define and compute the sigmoid function</div>
+                </div>
+                <div class="objective">
+                    <div class="objective-icon">✓</div>
+                    <div class="objective-text">Interpret model outputs as probabilities</div>
+                </div>
+                <div class="objective">
+                    <div class="objective-icon">✓</div>
+                    <div class="objective-text">Apply decision boundaries to make predictions</div>
+                </div>
+            </div>
+
+            <p style="margin-top: 1rem;">These concepts form the foundation for understanding neural networks, where sigmoid and similar activation functions are used extensively in hidden layers and output layers.</p>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~30 sec</strong> | Quickly go through objectives. These set expectations and help students know what's important. Mention connection to neural networks.
+            </div>
+        </section>
+
+        <!-- Slide 3: Classification Problem -->
+        <section class="slide" id="slide3">
+            <h2>What is Classification?</h2>
+            <p>In machine learning, we distinguish between two main types of supervised learning tasks:</p>
+            
+            <div class="two-columns">
+                <div>
+                    <h3>Regression (Week 4)</h3>
+                    <p>Predicts <strong>continuous values</strong> — numbers that can take any value within a range.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Examples: house prices ($150,000), temperature (23.5°C), stock prices</p>
+                </div>
+                <div>
+                    <h3>Classification (Today)</h3>
+                    <p>Predicts <strong>discrete categories</strong> — labels from a fixed set of possible outcomes.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Examples: spam/not spam, disease/healthy, cat/dog/bird</p>
+                </div>
+            </div>
+            
+            <h3>Binary Classification Examples</h3>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">📧</div>
+                    <h4>Email Filtering</h4>
+                    <ul>
+                        <li>Input: Email content, sender</li>
+                        <li>Output: Spam (1) or Not Spam (0)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🏥</div>
+                    <h4>Medical Diagnosis</h4>
+                    <ul>
+                        <li>Input: Test results, symptoms</li>
+                        <li>Output: Disease (1) or Healthy (0)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🎓</div>
+                    <h4>Student Performance</h4>
+                    <ul>
+                        <li>Input: Study hours, attendance</li>
+                        <li>Output: Pass (1) or Fail (0)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💳</div>
+                    <h4>Fraud Detection</h4>
+                    <ul>
+                        <li>Input: Transaction data</li>
+                        <li>Output: Fraud (1) or Legit (0)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h4>💡 Key Insight</h4>
+                <p>In all these cases, we don't just want a yes/no answer — we want <strong>probability</strong>. How confident is our model? A 95% chance of spam is very different from a 55% chance, even though both might be classified as "spam."</p>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~1.5 min</strong> | Use familiar examples. Ask: "Who has received a spam email?" Build intuition that we want probability, not just yes/no. Emphasize the difference from last week's regression.
+            </div>
+        </section>
+
+        <!-- Slide 4: Why Not Linear Regression -->
+        <section class="slide" id="slide4">
+            <h2>Why Can't We Use Linear Regression?</h2>
+            
+            <p>A natural first thought might be: "We learned linear regression last week — can't we just use that?" Let's try predicting if a student passes (1) or fails (0) based on hours studied:</p>
+
+            <div class="formula-box">
+                <div class="formula">ŷ = w·x + b</div>
+                <div class="label">Linear Regression Prediction</div>
+            </div>
+
+            <div class="two-columns">
+                <div>
+                    <h3>The Problems</h3>
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-num">1</div>
+                            <div class="step-content">
+                                <h4>Unbounded Output</h4>
+                                <p>Linear regression can output any value from -∞ to +∞, but probabilities must be between 0 and 1.</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num">2</div>
+                            <div class="step-content">
+                                <h4>Meaningless Values</h4>
+                                <p>What does a prediction of 1.5 or -0.3 mean as a probability? These values are impossible!</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num">3</div>
+                            <div class="step-content">
+                                <h4>Outlier Sensitivity</h4>
+                                <p>A single extreme data point can shift the entire decision boundary inappropriately.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Visualization</h3>
+                    <div class="chart-box">
+                        <canvas id="linearProblemChart" height="200"></canvas>
+                    </div>
+                    <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted);">The orange line extends beyond valid probability range [0,1]</p>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h4>🎯 The Solution</h4>
+                <p>We need a mathematical function that "squashes" any input into the range [0, 1]. This function is called the <strong>sigmoid</strong> (or logistic function), and it's the key ingredient that transforms linear regression into logistic regression.</p>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~2 min</strong> | Draw attention to the chart: "See how the orange line goes above 1 and below 0? That's nonsensical for probability." This motivates the need for sigmoid.
+            </div>
+        </section>
+
+        <!-- Slide 5: The Sigmoid Function -->
+        <section class="slide" id="slide5">
+            <h2>The Sigmoid Function</h2>
+            
+            <p>The sigmoid function (also called the logistic function) is a mathematical function that maps any real number to a value between 0 and 1. This makes it perfect for representing probabilities.</p>
+
+            <div class="formula-box">
+                <div class="formula">σ(z) = 1 / (1 + e<sup>-z</sup>)</div>
+                <div class="label">The Sigmoid Function — where e ≈ 2.718 (Euler's number)</div>
+            </div>
+
+            <h3>Understanding the Formula</h3>
+            <p>Let's break down what happens for different values of z:</p>
+
+            <div class="cards-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="card" style="text-align: center;">
+                    <h4>When z → -∞</h4>
+                    <p style="font-size: 1.5rem; color: var(--accent-pink);">σ(z) → 0</p>
+                    <p style="font-size: 0.8rem;">e<sup>-z</sup> becomes very large, so 1/(1+large) ≈ 0</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h4>When z = 0</h4>
+                    <p style="font-size: 1.5rem; color: var(--accent-purple);">σ(z) = 0.5</p>
+                    <p style="font-size: 0.8rem;">e<sup>0</sup> = 1, so 1/(1+1) = 0.5</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h4>When z → +∞</h4>
+                    <p style="font-size: 1.5rem; color: var(--accent-cyan);">σ(z) → 1</p>
+                    <p style="font-size: 0.8rem;">e<sup>-z</sup> becomes very small, so 1/(1+small) ≈ 1</p>
+                </div>
+            </div>
+
+            <div class="interactive-box">
+                <h3>🔧 Interactive Sigmoid Explorer</h3>
+                <p>Move the slider to see how different input values transform through the sigmoid function:</p>
+                
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span class="slider-label">Input value (z)</span>
+                        <span class="slider-value" id="zValue">0.0</span>
+                    </div>
+                    <input type="range" id="zSlider" min="-6" max="6" step="0.1" value="0">
+                </div>
+
+                <div class="formula-box" style="margin: 0.75rem 0; padding: 1rem;">
+                    <div>σ(<span id="zDisplay">0.0</span>) = <span class="formula" id="sigmaDisplay">0.500</span></div>
+                </div>
+
+                <div class="chart-box">
+                    <canvas id="sigmoidChart" height="140"></canvas>
+                </div>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~2.5 min</strong> | Interact with the slider! Show students: "When z=0, we get exactly 0.5 — this becomes our decision boundary." Move slider to extremes to show asymptotic behavior. Explain this is why it's called "logistic" — it follows a logistic curve.
+            </div>
+        </section>
+
+        <!-- Slide 6: Logistic Regression Model -->
+        <section class="slide" id="slide6">
+            <h2>The Logistic Regression Model</h2>
+            
+            <p>Now we have all the pieces. Logistic regression combines the linear model from last week with the sigmoid function to create a classifier that outputs probabilities:</p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>Step 1: Compute Linear Combination</h4>
+                        <p>First, we calculate z = w·x + b, exactly like linear regression. The weight w and bias b are learned from training data.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h4>Step 2: Apply Sigmoid Function</h4>
+                        <p>We pass z through the sigmoid to get a probability: P(y=1|x) = σ(z). This ensures output is always between 0 and 1.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h4>Step 3: Interpret as Probability</h4>
+                        <p>The output represents P(y=1|x), the probability that the input x belongs to class 1. Note: P(y=0|x) = 1 - P(y=1|x).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="formula-box">
+                <div class="formula">P(y=1|x) = σ(w·x + b) = 1 / (1 + e<sup>-(w·x + b)</sup>)</div>
+                <div class="label">Complete Logistic Regression Model</div>
+            </div>
+
+            <div class="two-columns">
+                <div class="highlight" style="margin: 0;">
+                    <h4>🔑 Role of Weight (w)</h4>
+                    <p>Controls the <strong>steepness</strong> of the sigmoid curve. Larger |w| means sharper transition between classes. The sign determines direction (positive w: higher x → higher probability).</p>
+                </div>
+                <div class="highlight" style="margin: 0; border-color: var(--accent-purple);">
+                    <h4 style="color: var(--accent-purple);">🔑 Role of Bias (b)</h4>
+                    <p>Controls <strong>where</strong> the decision boundary is located. Changing b shifts the sigmoid curve left or right along the x-axis without changing its shape.</p>
+                </div>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~1.5 min</strong> | Emphasize the pipeline: "We first compute the same linear combination as before, then squeeze it through sigmoid to get a probability." Make sure students understand the roles of w and b.
+            </div>
+        </section>
+
+        <!-- Slide 7: Decision Boundary -->
+        <section class="slide" id="slide7">
+            <h2>Decision Boundary</h2>
+            
+            <p>The sigmoid gives us a probability, but in practice we often need to make a definite decision: Class 0 or Class 1. We do this by choosing a <strong>threshold</strong> (typically 0.5):</p>
+
+            <div class="formula-box">
+                <div class="formula">ŷ = 1 if P(y=1|x) ≥ 0.5, otherwise ŷ = 0</div>
+                <div class="label">Decision Rule — classify based on threshold</div>
+            </div>
+
+            <p>The <strong>decision boundary</strong> is the point (or line/surface in higher dimensions) where the model is exactly 50% confident. This occurs when σ(z) = 0.5, which happens when z = 0:</p>
+
+            <div class="formula-box">
+                <div class="formula">w·x + b = 0 → x = -b/w</div>
+                <div class="label">Decision Boundary Location (for single feature)</div>
+            </div>
+
+            <div class="interactive-box">
+                <h3>🔧 Explore the Decision Boundary</h3>
+                <p>Adjust weight and bias to see how they affect the sigmoid curve and decision boundary:</p>
+                
+                <div class="two-columns" style="gap: 1rem;">
+                    <div>
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <span class="slider-label">Weight (w)</span>
+                                <span class="slider-value" id="wValue">1.0</span>
+                            </div>
+                            <input type="range" id="wSlider" min="-3" max="3" step="0.1" value="1">
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <span class="slider-label">Bias (b)</span>
+                                <span class="slider-value" id="bValue">0.0</span>
+                            </div>
+                            <input type="range" id="bSlider" min="-5" max="5" step="0.1" value="0">
+                        </div>
+
+                        <div class="formula-box" style="margin: 0.75rem 0; padding: 0.75rem;">
+                            <div>Boundary at x = <span class="formula" id="boundaryX">0.00</span></div>
+                        </div>
+                    </div>
+                    <div class="chart-box" style="margin: 0;">
+                        <canvas id="boundaryChart" height="160"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h4>💡 Adjusting the Threshold</h4>
+                <p>The default 0.5 threshold isn't always optimal. In <strong>medical diagnosis</strong>, we might lower it to 0.3 to catch more true positives (higher recall). In <strong>spam detection</strong>, we might raise it to 0.7 to avoid false positives. The right threshold depends on the cost of different types of errors.</p>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~2 min</strong> | Interactive demo: "Watch what happens when I change w — the curve becomes steeper or shallower. Change b — the boundary shifts." Ask students to predict before moving sliders.
+            </div>
+        </section>
+
+        <!-- Slide 8: Loss Function -->
+        <section class="slide" id="slide8">
+            <h2>Binary Cross-Entropy Loss</h2>
+            
+            <p>To train our model (find optimal w and b), we need a <strong>loss function</strong> that measures how wrong our predictions are. For classification, we use <strong>Binary Cross-Entropy</strong> (also called Log Loss):</p>
+
+            <div class="formula-box">
+                <div class="formula">L = -[y·log(ŷ) + (1-y)·log(1-ŷ)]</div>
+                <div class="label">Binary Cross-Entropy Loss — where y is actual (0 or 1), ŷ is predicted probability</div>
+            </div>
+
+            <h3>Why This Formula?</h3>
+            <p>The formula looks complex, but it's actually elegant. Because y is either 0 or 1, only one term is active at a time:</p>
+
+            <div class="cards-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="card">
+                    <h4>When actual y = 1 (positive case)</h4>
+                    <p>The formula simplifies to: <strong>Loss = -log(ŷ)</strong></p>
+                    <ul>
+                        <li style="color: var(--accent-green);">If ŷ → 1 (correct!), loss → 0</li>
+                        <li style="color: var(--accent-pink);">If ŷ → 0 (wrong!), loss → ∞</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>When actual y = 0 (negative case)</h4>
+                    <p>The formula simplifies to: <strong>Loss = -log(1-ŷ)</strong></p>
+                    <ul>
+                        <li style="color: var(--accent-green);">If ŷ → 0 (correct!), loss → 0</li>
+                        <li style="color: var(--accent-pink);">If ŷ → 1 (wrong!), loss → ∞</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="interactive-box">
+                <h3>🔧 Explore the Loss Function</h3>
+                
+                <div class="two-columns" style="gap: 1rem;">
+                    <div>
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <span class="slider-label">Predicted probability (ŷ)</span>
+                                <span class="slider-value" id="predValue">0.50</span>
+                            </div>
+                            <input type="range" id="predSlider" min="0.01" max="0.99" step="0.01" value="0.5">
+                        </div>
+
+                        <div style="margin: 0.75rem 0;">
+                            <button class="btn" id="classToggle" onclick="toggleActualClass()">Actual Class: y = 1</button>
+                        </div>
+
+                        <div class="formula-box" style="margin: 0.75rem 0; padding: 0.75rem;">
+                            <div>Loss = <span class="formula" id="lossDisplay">0.693</span></div>
+                            <div class="label" id="lossExplanation">-log(0.50) = 0.693</div>
+                        </div>
+                    </div>
+                    <div class="chart-box" style="margin: 0;">
+                        <canvas id="lossChart" height="160"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h4>🎯 Key Property: Punishes Confident Mistakes</h4>
+                <p>Notice how the loss explodes when the model is confidently wrong (predicting 0.99 when actual is 0). This is intentional — BCE heavily penalizes overconfident incorrect predictions, which helps the model learn to be well-calibrated.</p>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~2 min</strong> | Show the chart interaction. "See how loss explodes when we're confidently wrong? This penalizes overconfident mistakes heavily." Toggle actual class to show both curves.
+            </div>
+        </section>
+
+        <!-- Slide 9: Quick Quiz -->
+        <section class="slide" id="slide9">
+            <h2>Quick Knowledge Check 🧠</h2>
+            <p>Let's test your understanding with a few quick questions:</p>
+            
+            <div class="two-columns">
+                <div class="quiz-container">
+                    <p class="quiz-question">1. What is the value of σ(0)?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, true, 1)">0.5</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 1)">0</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 1)">1</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 1)">undefined</div>
+                    <div class="quiz-feedback correct" id="fb1c">✓ Correct! When z=0: e⁰=1, so σ(0) = 1/(1+1) = 0.5</div>
+                    <div class="quiz-feedback wrong" id="fb1w">✗ Try again. Remember: σ(z) = 1/(1 + e⁻ᶻ)</div>
+                </div>
+
+                <div class="quiz-container">
+                    <p class="quiz-question">2. If P(y=1|x) = 0.7, what is P(y=0|x)?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, true, 2)">0.3</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 2)">0.7</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 2)">1.0</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 2)">Cannot determine</div>
+                    <div class="quiz-feedback correct" id="fb2c">✓ Correct! Probabilities must sum to 1: P(y=0) = 1 - 0.7 = 0.3</div>
+                    <div class="quiz-feedback wrong" id="fb2w">✗ Hint: All class probabilities must sum to 1.</div>
+                </div>
+            </div>
+
+            <div class="two-columns" style="margin-top: 1rem;">
+                <div class="quiz-container">
+                    <p class="quiz-question">3. What happens to the sigmoid curve when we increase weight w?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 3)">It shifts left</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 3)">It shifts right</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, true, 3)">It becomes steeper</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 3)">It becomes flatter</div>
+                    <div class="quiz-feedback correct" id="fb3c">✓ Correct! Larger |w| makes the transition sharper. Bias b shifts the curve.</div>
+                    <div class="quiz-feedback wrong" id="fb3w">✗ Think about what w multiplies in w·x + b.</div>
+                </div>
+
+                <div class="quiz-container">
+                    <p class="quiz-question">4. Why do we use BCE instead of MSE for classification?</p>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 4)">BCE is faster to compute</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, true, 4)">BCE creates a convex loss surface</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 4)">MSE doesn't work with sigmoid</div>
+                    <div class="quiz-option" onclick="checkQuiz(this, false, 4)">BCE gives smaller values</div>
+                    <div class="quiz-feedback correct" id="fb4c">✓ Correct! BCE creates a convex surface with one global minimum, ensuring gradient descent converges properly.</div>
+                    <div class="quiz-feedback wrong" id="fb4w">✗ Think about optimization properties.</div>
+                </div>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~1.5 min</strong> | Engage students with quick questions. Call on individuals or let them answer together. These reinforce key concepts.
+            </div>
+        </section>
+
+        <!-- Slide 10: Code Implementation - Part 1 -->
+        <section class="slide" id="slide10">
+            <h2>Python Implementation: Core Functions</h2>
+            <p>Let's implement logistic regression step by step. First, the fundamental building blocks:</p>
+
+            <div class="code-explanation">
+                <div class="code-side">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># 1. The Sigmoid Function</span>
+<span class="keyword">def</span> <span class="function">sigmoid</span>(z):
+    <span class="string">"""Transform any value to range [0,1]"""</span>
+    <span class="keyword">return</span> <span class="number">1</span> / (<span class="number">1</span> + np.exp(-z))
+
+<span class="comment"># Test it</span>
+<span class="keyword">print</span>(sigmoid(<span class="number">0</span>))    <span class="comment"># 0.5</span>
+<span class="keyword">print</span>(sigmoid(<span class="number">2</span>))    <span class="comment"># 0.88</span>
+<span class="keyword">print</span>(sigmoid(-<span class="number">2</span>))   <span class="comment"># 0.12</span>
+                </div>
+                <div class="explain-side">
+                    <div class="explain-item">
+                        <div class="line-ref">Line 1</div>
+                        <p>NumPy provides <code>np.exp()</code> for efficient exponential calculations, even on arrays.</p>
+                    </div>
+                    <div class="explain-item">
+                        <div class="line-ref">Line 5</div>
+                        <p>Direct implementation of σ(z) = 1/(1+e⁻ᶻ). Works with single numbers or entire arrays!</p>
+                    </div>
+                    <div class="explain-item">
+                        <div class="line-ref">Lines 8-10</div>
+                        <p>Testing: z=0→0.5 (boundary), z=2→0.88 (likely class 1), z=-2→0.12 (likely class 0)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-explanation">
+                <div class="code-side">
+<span class="comment"># 2. Predict Probability</span>
+<span class="keyword">def</span> <span class="function">predict_proba</span>(X, w, b):
+    <span class="string">"""Get P(y=1|x) for each sample"""</span>
+    z = np.dot(X, w) + b  <span class="comment"># Linear</span>
+    <span class="keyword">return</span> sigmoid(z)      <span class="comment"># Squash</span>
+
+<span class="comment"># 3. Predict Class Labels</span>
+<span class="keyword">def</span> <span class="function">predict</span>(X, w, b, threshold=<span class="number">0.5</span>):
+    <span class="string">"""Convert probabilities to 0/1"""</span>
+    probs = predict_proba(X, w, b)
+    <span class="keyword">return</span> (probs >= threshold).astype(<span class="keyword">int</span>)
+                </div>
+                <div class="explain-side">
+                    <div class="explain-item">
+                        <div class="line-ref">Line 4</div>
+                        <p><code>np.dot(X, w)</code> computes the linear combination for all samples at once. This is vectorized and very fast.</p>
+                    </div>
+                    <div class="explain-item">
+                        <div class="line-ref">Line 5</div>
+                        <p>Pass through sigmoid to get probabilities. The two-step process: linear → non-linear.</p>
+                    </div>
+                    <div class="explain-item">
+                        <div class="line-ref">Line 11</div>
+                        <p>Compare to threshold and convert boolean to int. Default 0.5 means "more likely than not."</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~2 min</strong> | Walk through the code line by line. Emphasize vectorization — this handles thousands of samples efficiently. Point out the two-step process in predict_proba.
+            </div>
+        </section>
+
+        <!-- Slide 11: Code Implementation - Part 2 -->
+        <section class="slide" id="slide11">
+            <h2>Python Implementation: Loss & Training</h2>
+            <p>Now let's implement the loss function and see a complete example:</p>
+
+            <div class="code-explanation">
+                <div class="code-side">
+<span class="comment"># 4. Binary Cross-Entropy Loss</span>
+<span class="keyword">def</span> <span class="function">bce_loss</span>(y_true, y_pred):
+    <span class="string">"""Compute average loss over samples"""</span>
+    <span class="comment"># Prevent log(0) with small epsilon</span>
+    eps = <span class="number">1e-15</span>
+    y_pred = np.clip(y_pred, eps, <span class="number">1</span>-eps)
+    
+    <span class="comment"># BCE formula</span>
+    loss = -(y_true * np.log(y_pred) + 
+             (<span class="number">1</span>-y_true) * np.log(<span class="number">1</span>-y_pred))
+    <span class="keyword">return</span> np.mean(loss)
+                </div>
+                <div class="explain-side">
+                    <div class="explain-item">
+                        <div class="line-ref">Lines 5-6</div>
+                        <p><code>np.clip</code> ensures y_pred stays in (ε, 1-ε) to avoid log(0) = -∞ which would crash our code.</p>
+                    </div>
+                    <div class="explain-item">
+                        <div class="line-ref">Lines 9-10</div>
+                        <p>Direct implementation of L = -[y·log(ŷ) + (1-y)·log(1-ŷ)]. NumPy handles element-wise operations.</p>
+                    </div>
+                    <div class="explain-item">
+                        <div class="line-ref">Line 11</div>
+                        <p><code>np.mean</code> averages over all samples to get a single loss value for the batch.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Complete Example: Student Pass/Fail</h3>
+            <div class="code-block">
+<span class="comment"># Sample data: hours studied</span>
+X = np.array([[<span class="number">1</span>], [<span class="number">2</span>], [<span class="number">3</span>], [<span class="number">5</span>], [<span class="number">6</span>], [<span class="number">7</span>]])  <span class="comment"># Features</span>
+y = np.array([<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>])                    <span class="comment"># Labels (fail/pass)</span>
+
+<span class="comment"># Pretrained weights (in practice, learned via gradient descent)</span>
+w = np.array([<span class="number">1.5</span>])   <span class="comment"># Positive: more hours → higher prob</span>
+b = <span class="number">-6.0</span>               <span class="comment"># Shifts boundary to ~4 hours</span>
+
+<span class="comment"># Make predictions</span>
+probs = predict_proba(X, w, b)
+predictions = predict(X, w, b)
+
+<span class="keyword">print</span>(<span class="string">"Hours:       "</span>, X.flatten())       <span class="comment"># [1, 2, 3, 5, 6, 7]</span>
+<span class="keyword">print</span>(<span class="string">"Probability: "</span>, probs.round(<span class="number">2</span>))    <span class="comment"># [0.01, 0.05, 0.18, 0.82, 0.95, 0.99]</span>
+<span class="keyword">print</span>(<span class="string">"Predicted:   "</span>, predictions)        <span class="comment"># [0, 0, 0, 1, 1, 1]</span>
+<span class="keyword">print</span>(<span class="string">"Actual:      "</span>, y)                   <span class="comment"># [0, 0, 0, 1, 1, 1]</span>
+<span class="keyword">print</span>(<span class="string">"Loss:        "</span>, bce_loss(y, probs).round(<span class="number">3</span>))  <span class="comment"># ~0.124</span>
+            </div>
+
+            <div class="highlight">
+                <h4>💻 Lab Exercise Preview</h4>
+                <p>In the upcoming lab, you'll implement these functions from scratch and test them on real data. You'll also learn how gradient descent is used to find the optimal w and b automatically!</p>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~2 min</strong> | Show the complete example. Point out how predictions match actual labels perfectly in this case. Explain that in practice, we use gradient descent to find w and b — this is what students will explore in the lab.
+            </div>
+        </section>
+
+        <!-- Slide 12: Summary -->
+        <section class="slide" id="slide12">
+            <h2>Key Takeaways</h2>
+
+            <div class="summary-grid">
+                <div class="summary-item" data-num="1">
+                    <h4>Sigmoid Function</h4>
+                    <p>σ(z) = 1/(1+e⁻ᶻ) transforms any real number into range [0,1], making it perfect for representing probabilities. σ(0) = 0.5 is the natural decision point.</p>
+                </div>
+                <div class="summary-item" data-num="2">
+                    <h4>Logistic Regression</h4>
+                    <p>P(y=1|x) = σ(w·x + b) combines linear model with sigmoid. Weight w controls steepness, bias b shifts the decision boundary.</p>
+                </div>
+                <div class="summary-item" data-num="3">
+                    <h4>Decision Boundary</h4>
+                    <p>The point where P = 0.5, defined by w·x + b = 0. We classify based on which side of this boundary samples fall.</p>
+                </div>
+                <div class="summary-item" data-num="4">
+                    <h4>Binary Cross-Entropy</h4>
+                    <p>L = -[y·log(ŷ) + (1-y)·log(1-ŷ)] penalizes confident wrong predictions heavily, creating a convex optimization surface.</p>
+                </div>
+            </div>
+
+            <div class="two-columns">
+                <div class="highlight" style="margin: 0;">
+                    <h4>🔗 Connection to Deep Learning</h4>
+                    <p>The sigmoid function you learned today is used as an <strong>activation function</strong> in neural networks. Understanding it deeply prepares you for more complex architectures!</p>
+                </div>
+                <div class="highlight" style="margin: 0; border-color: var(--accent-cyan);">
+                    <h4 style="color: var(--accent-cyan);">🚀 Coming Up Next</h4>
+                    <p><strong>Week 6:</strong> Support Vector Machines — finding the optimal decision boundary with maximum margin separation.</p>
+                </div>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ ~1 min</strong> | Quick recap of main points. End strong: "You now understand the foundation of neural network activation functions!" Mention that next week builds on these concepts.
+            </div>
+        </section>
+
+        <!-- Slide 13: Questions -->
+        <section class="slide title-slide" id="slide13">
+            <h1>Questions?</h1>
+            <p class="subtitle">Let's discuss what you've learned</p>
+            
+            <div style="margin-top: 2rem;">
+                <p style="color: var(--text-muted);">Lab materials and code examples available for hands-on practice</p>
+            </div>
+
+            <div class="speaker-notes">
+                <strong>⏱️ Remaining time</strong> | Open for questions. If no questions, you can ask: "What real-world problem would you use logistic regression for?" or "Why do you think we call it logistic 'regression' even though it's used for classification?" (Historical reasons — it predicts log-odds, which is a regression task)
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ===== NAVIGATION =====
+        const slides = document.querySelectorAll('.slide');
+        const navDotsContainer = document.getElementById('navDots');
+        let currentSlide = 0;
+
+        // Create nav dots
+        slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            dot.onclick = () => goToSlide(i);
+            navDotsContainer.appendChild(dot);
+        });
+
+        function goToSlide(index) {
+            slides[index].scrollIntoView({ behavior: 'smooth' });
+            updateActiveDot(index);
+        }
+
+        function updateActiveDot(index) {
+            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+            currentSlide = index;
+            updateProgressBar();
+        }
+
+        // Progress bar
+        function updateProgressBar() {
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // Scroll detection
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const index = Array.from(slides).indexOf(entry.target);
+                    updateActiveDot(index);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        slides.forEach(slide => observer.observe(slide));
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+                e.preventDefault();
+                if (currentSlide < slides.length - 1) goToSlide(currentSlide + 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (currentSlide > 0) goToSlide(currentSlide - 1);
+            }
+        });
+
+        // ===== CONTROLS =====
+        function toggleNotes() {
+            document.body.classList.toggle('show-notes');
+            document.querySelector('.ctrl-btn:nth-child(1)').classList.toggle('active');
+        }
+
+        let timerInterval;
+        let seconds = 0;
+        function toggleTimer() {
+            document.body.classList.toggle('show-timer');
+            document.querySelector('.ctrl-btn:nth-child(2)').classList.toggle('active');
+            
+            if (document.body.classList.contains('show-timer')) {
+                seconds = 0;
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const secs = (seconds % 60).toString().padStart(2, '0');
+                    document.getElementById('timer').textContent = `${mins}:${secs}`;
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+            }
+        }
+
+        function togglePresentation() {
+            document.body.classList.toggle('presentation-mode');
+            document.querySelector('.ctrl-btn:nth-child(3)').classList.toggle('active');
+        }
+
+        // ===== SIGMOID FUNCTION =====
+        function sigmoid(z) {
+            return 1 / (1 + Math.exp(-z));
+        }
+
+        // ===== CHART COLORS =====
+        const colors = {
+            cyan: '#00d4ff',
+            purple: '#a855f7',
+            pink: '#f472b6',
+            green: '#22c55e',
+            orange: '#fb923c',
+            grid: 'rgba(161, 161, 170, 0.1)',
+            text: '#a1a1aa'
+        };
+
+        // ===== LINEAR PROBLEM CHART =====
+        const linearCtx = document.getElementById('linearProblemChart')?.getContext('2d');
+        if (linearCtx) {
+            const xData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const yActual = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1];
+            
+            new Chart(linearCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Actual Labels',
+                        data: xData.map((x, i) => ({x, y: yActual[i]})),
+                        backgroundColor: xData.map((_, i) => yActual[i] ? colors.cyan : colors.pink),
+                        pointRadius: 8
+                    }, {
+                        label: 'Linear Regression (fails!)',
+                        data: xData.map(x => ({x, y: -0.3 + 0.12 * x})),
+                        type: 'line',
+                        borderColor: colors.orange,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: colors.text, font: { size: 11 } } } },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Hours Studied', color: colors.text, font: { size: 11 } },
+                            grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 10 } }
+                        },
+                        y: { 
+                            title: { display: true, text: 'Pass (1) / Fail (0)', color: colors.text, font: { size: 11 } },
+                            min: -0.5, max: 1.5,
+                            grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== SIGMOID INTERACTIVE CHART =====
+        let sigmoidChart;
+        const sigmoidCtx = document.getElementById('sigmoidChart')?.getContext('2d');
+        
+        if (sigmoidCtx) {
+            const xVals = [], yVals = [];
+            for (let x = -6; x <= 6; x += 0.1) {
+                xVals.push(x);
+                yVals.push(sigmoid(x));
+            }
+            
+            sigmoidChart = new Chart(sigmoidCtx, {
+                type: 'line',
+                data: {
+                    labels: xVals,
+                    datasets: [{
+                        label: 'σ(z)',
+                        data: yVals,
+                        borderColor: colors.cyan,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: { target: 'origin', above: 'rgba(0, 212, 255, 0.1)' }
+                    }, {
+                        label: 'Current',
+                        data: [{x: 0, y: 0.5}],
+                        type: 'scatter',
+                        backgroundColor: colors.pink,
+                        pointRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: colors.text, font: { size: 10 } } } },
+                    scales: {
+                        x: { type: 'linear', grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 9 } } },
+                        y: { min: 0, max: 1, grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        // Z slider
+        const zSlider = document.getElementById('zSlider');
+        if (zSlider) {
+            zSlider.addEventListener('input', function() {
+                const z = parseFloat(this.value);
+                const sig = sigmoid(z);
+                document.getElementById('zValue').textContent = z.toFixed(1);
+                document.getElementById('zDisplay').textContent = z.toFixed(1);
+                document.getElementById('sigmaDisplay').textContent = sig.toFixed(3);
+                if (sigmoidChart) {
+                    sigmoidChart.data.datasets[1].data = [{x: z, y: sig}];
+                    sigmoidChart.update('none');
+                }
+            });
+        }
+
+        // ===== DECISION BOUNDARY CHART =====
+        let boundaryChart;
+        const boundaryCtx = document.getElementById('boundaryChart')?.getContext('2d');
+        
+        if (boundaryCtx) {
+            const xVals = [];
+            for (let x = -5; x <= 5; x += 0.1) xVals.push(x);
+            
+            boundaryChart = new Chart(boundaryCtx, {
+                type: 'line',
+                data: {
+                    labels: xVals,
+                    datasets: [{
+                        label: 'P(y=1|x)',
+                        data: xVals.map(x => sigmoid(x)),
+                        borderColor: colors.cyan,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }, {
+                        label: 'Boundary',
+                        data: [{x: 0, y: 0}, {x: 0, y: 1}],
+                        type: 'line',
+                        borderColor: colors.pink,
+                        borderWidth: 2,
+                        borderDash: [6, 3],
+                        pointRadius: 0
+                    }, {
+                        label: 'Threshold',
+                        data: [{x: -5, y: 0.5}, {x: 5, y: 0.5}],
+                        type: 'line',
+                        borderColor: colors.orange,
+                        borderWidth: 1,
+                        borderDash: [4, 4],
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: colors.text, font: { size: 10 } } } },
+                    scales: {
+                        x: { type: 'linear', min: -5, max: 5, grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 9 } } },
+                        y: { min: 0, max: 1, grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        function updateBoundary() {
+            const w = parseFloat(document.getElementById('wSlider').value);
+            const b = parseFloat(document.getElementById('bSlider').value);
+            
+            document.getElementById('wValue').textContent = w.toFixed(1);
+            document.getElementById('bValue').textContent = b.toFixed(1);
+            
+            const boundary = w !== 0 ? (-b / w) : 0;
+            document.getElementById('boundaryX').textContent = boundary.toFixed(2);
+            
+            if (boundaryChart) {
+                const xVals = [];
+                for (let x = -5; x <= 5; x += 0.1) xVals.push(x);
+                boundaryChart.data.datasets[0].data = xVals.map(x => sigmoid(w * x + b));
+                boundaryChart.data.datasets[1].data = [{x: boundary, y: 0}, {x: boundary, y: 1}];
+                boundaryChart.update('none');
+            }
+        }
+
+        document.getElementById('wSlider')?.addEventListener('input', updateBoundary);
+        document.getElementById('bSlider')?.addEventListener('input', updateBoundary);
+
+        // ===== LOSS CHART =====
+        let lossChart;
+        let actualClass = 1;
+        const lossCtx = document.getElementById('lossChart')?.getContext('2d');
+        
+        if (lossCtx) {
+            const pVals = [], loss1 = [], loss0 = [];
+            for (let p = 0.01; p <= 0.99; p += 0.01) {
+                pVals.push(p);
+                loss1.push(-Math.log(p));
+                loss0.push(-Math.log(1 - p));
+            }
+            
+            lossChart = new Chart(lossCtx, {
+                type: 'line',
+                data: {
+                    labels: pVals,
+                    datasets: [{
+                        label: 'Loss (y=1)',
+                        data: loss1,
+                        borderColor: colors.cyan,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }, {
+                        label: 'Loss (y=0)',
+                        data: loss0,
+                        borderColor: colors.pink,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }, {
+                        label: 'Current',
+                        data: [{x: 0.5, y: 0.693}],
+                        type: 'scatter',
+                        backgroundColor: colors.orange,
+                        pointRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: colors.text, font: { size: 10 } } } },
+                    scales: {
+                        x: { type: 'linear', min: 0, max: 1, grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 9 } } },
+                        y: { min: 0, max: 5, grid: { color: colors.grid }, ticks: { color: colors.text, font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        function updateLoss() {
+            const pred = parseFloat(document.getElementById('predSlider').value);
+            document.getElementById('predValue').textContent = pred.toFixed(2);
+            
+            let loss;
+            if (actualClass === 1) {
+                loss = -Math.log(pred);
+                document.getElementById('lossExplanation').textContent = `-log(${pred.toFixed(2)}) = ${loss.toFixed(3)}`;
+            } else {
+                loss = -Math.log(1 - pred);
+                document.getElementById('lossExplanation').textContent = `-log(1 - ${pred.toFixed(2)}) = ${loss.toFixed(3)}`;
+            }
+            
+            document.getElementById('lossDisplay').textContent = loss.toFixed(3);
+            
+            if (lossChart) {
+                lossChart.data.datasets[2].data = [{x: pred, y: loss}];
+                lossChart.update('none');
+            }
+        }
+
+        function toggleActualClass() {
+            actualClass = actualClass === 1 ? 0 : 1;
+            const btn = document.getElementById('classToggle');
+            btn.textContent = `Actual Class: y = ${actualClass}`;
+            btn.style.background = actualClass === 1 ? 'var(--gradient-cyan)' : 'var(--gradient-purple)';
+            updateLoss();
+        }
+
+        document.getElementById('predSlider')?.addEventListener('input', updateLoss);
+
+        // ===== QUIZ =====
+        function checkQuiz(el, isCorrect, qNum) {
+            const container = el.closest('.quiz-container');
+            container.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'wrong');
+                opt.style.pointerEvents = 'none';
+            });
+            
+            el.classList.add(isCorrect ? 'correct' : 'wrong');
+            
+            const fbCorrect = container.querySelector('.quiz-feedback.correct');
+            const fbWrong = container.querySelector('.quiz-feedback.wrong');
+            fbCorrect?.classList.remove('show');
+            fbWrong?.classList.remove('show');
+            
+            if (isCorrect) {
+                fbCorrect?.classList.add('show');
+            } else {
+                fbWrong?.classList.add('show');
+                setTimeout(() => {
+                    container.querySelectorAll('.quiz-option').forEach(opt => {
+                        opt.classList.remove('wrong');
+                        opt.style.pointerEvents = 'auto';
+                    });
+                    fbWrong?.classList.remove('show');
+                }, 2500);
+            }
+        }
+
+        // Initialize
+        updateProgressBar();
+    </script>
+</body>
+</html>
